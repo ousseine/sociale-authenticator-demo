@@ -6,6 +6,13 @@
 
 <div class="container">
     <h1>{{ controller_name }} ✅</h1>
+
+    <div class="content mt-4">
+        {% if app.user %}
+            <h4 class="email">Client : #{{ app.user.id }}</h4>
+            <h4 class="email">Email : {{ app.user.email }}</h4>
+        {% endif %}
+    </div>
 </div>
 
 {% endblock %}
