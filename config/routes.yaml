@@ -5,3 +5,7 @@ controllers:
 connect_check:
     path: /connect/check/google
     controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController
+
+oaut2_github_check:
+    path: /oaut2/connect/check/{service}
+    controller: Symfony\Bundle\FrameworkBundle\Controller\TemplateController

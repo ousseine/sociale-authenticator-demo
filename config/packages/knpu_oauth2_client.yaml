@@ -7,3 +7,11 @@ knpu_oauth2_client:
             client_secret: '%env(OAUT_GOOGLE_SECRET)%'
             redirect_route: connect_check
             redirect_params: {}
+
+        github:
+            type: github
+            client_id: '%env(OAUT_GITHUB_ID)%'
+            client_secret: '%env(OAUT_GITHUB_SECRET)%'
+            redirect_route: oaut2_github_check
+            redirect_params:
+                service: github

@@ -7,6 +7,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use KnpU\OAuth2ClientBundle\Client\ClientRegistry;
 use KnpU\OAuth2ClientBundle\Security\Authenticator\OAuth2Authenticator;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GoogleUser;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,9 +19,12 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 class GoogleAuthenticator extends OAuth2Authenticator implements AuthenticationEntryPointInterface
 {
+    use TargetPathTrait;
+
     private RouterInterface $router;
     private ClientRegistry $clientRegistry;
     private EntityManagerInterface $em;
@@ -46,6 +50,7 @@ class GoogleAuthenticator extends OAuth2Authenticator implements AuthenticationE
         return 'connect_check' === $request->attributes->get('_route') && $request->isMethod('GET');
     }
 
+    /*** @throws IdentityProviderException */
     public function authenticate(Request $request): Passport
     {
         $client = $this->clientRegistry->getClient('google');
@@ -61,6 +66,7 @@ class GoogleAuthenticator extends OAuth2Authenticator implements AuthenticationE
                 if ($user) return $user;
 
                 $user = (new User())
+                    ->setRoles(["ROLE_USER"])
                     ->setEmail($googleUser->getEmail())
                     ->setGoogleId($googleUser->getId())
                 ;
@@ -74,9 +80,10 @@ class GoogleAuthenticator extends OAuth2Authenticator implements AuthenticationE
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        $targetPath = $this->getTargetPath($request->getSession(), $firewallName);
         $targetUrl = $this->router->generate('app_home');
 
-        return new RedirectResponse($targetUrl);
+        return new RedirectResponse($targetPath ? : $targetUrl);
     }
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
